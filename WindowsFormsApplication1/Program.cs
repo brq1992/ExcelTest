@@ -1,7 +1,8 @@
-﻿using NPOI.XWPF.UserModel;
+﻿
+using NPOI.SS.UserModel;
+using NPOI.XSSF.UserModel;
 using System;
 using System.IO;
-using System.Reflection;
 
 namespace WindowsFormsApplication1
 {
@@ -13,16 +14,24 @@ namespace WindowsFormsApplication1
         [STAThread]
         static void Main()
         {
-            System.Windows.Forms.Application.EnableVisualStyles();
-            System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
-            System.Windows.Forms.Application.Run(new Form1());
+            //System.Windows.Forms.Application.EnableVisualStyles();
+            //System.Windows.Forms.Application.SetCompatibleTextRenderingDefault(false);
+            //System.Windows.Forms.Application.Run(new Form1());
 
-            XWPFDocument doc = new XWPFDocument();
-            doc.CreateParagraph();
-            using (FileStream sw = File.Create("blank.docx"))
-            {
-                doc.Write(sw);
-            }
+            GenerateMainWorkBook();
+
+
+            WorkBookManager manager = new WorkBookManager();
+        }
+
+        private static void GenerateMainWorkBook()
+        {
+            IWorkbook workbook = new XSSFWorkbook();
+            workbook.CreateSheet("MainSheet");
+
+            FileStream sw = File.Create(@"e:/MainWorkBook.xlsx");
+            workbook.Write(sw);
+            sw.Close();
         }
     }
 }
