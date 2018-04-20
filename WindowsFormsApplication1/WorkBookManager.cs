@@ -12,16 +12,40 @@ using NPOI.HSSF.UserModel;
 namespace WindowsFormsApplication1
 {
 
-
+//255,255,204   10
+//0,255,0  52
+//255,192,0  50
+//247,150,70  57
+//28,250,227 49
+//255,0,0 48
+//153,153,255 20
+//128,0,128 55
+//150,150,150 14
+//146,208,80 51
+//128,100,162 13
+//255,204,153 11
+//155,187,89  15
+//255,255,255 40
+//204,255,204 61
+//255,128,128 22
+//255,153,204 45
+//255,255,0 47
+//79,129,189 43
+//75,172,198 42
+//204,255,255 41 
+//153,204,255 44
     class WorkBookManager
     {
         /// <summary>
         /// 主表
         /// </summary>
-        private IWorkbook mainWorkbook;
+        private XSSFWorkbook mainWorkbook;
 
+        private Dictionary<string, short> dictionary; 
         void Onece()
         {
+            
+
             IWorkbook workbook = new XSSFWorkbook();
 
             ISheet sheet1 = workbook.CreateSheet("Sheet1");
@@ -39,14 +63,36 @@ namespace WindowsFormsApplication1
         }
         public WorkBookManager()
         {
-            //Onece();
-            GetAllColor();
 
-            return;
-
+            dictionary = new Dictionary<string, short>
+            {
+                {"255,255,204", 10},
+                {"0,255,0", 52},
+                {"255,192,0", 50},
+                {"247,150,70", 57},
+                {"28,250,227", 49},
+                {"255,0,0", 48},
+                {"153,153,255", 20},
+                {"128,0,128", 55},
+                {"150,150,150", 14},
+                {"146,208,80", 51},
+                {"128,100,162", 13},
+                {"255,204,153", 11},
+                {"155,187,89", 15},
+                {"255,255,255", 40},
+                {"204,255,204", 61},
+                {"255,128,128", 22},
+                {"255,153,204", 45},
+                {"255,255,0", 47},
+                {"79,129,189", 43},
+                {"75,172,198", 42},
+                {"204,255,255", 41},
+                {"153,204,255", 44},
+                {"204,153,255",43}
+            };
 
             GenerateMainWorkBook();
-            ISheet mainSheet = mainWorkbook.GetSheet("MainSheet");
+            XSSFSheet mainSheet = (XSSFSheet) mainWorkbook.GetSheet("MainSheet");
 
             GetSalaryList(mainSheet);
 
@@ -328,37 +374,50 @@ namespace WindowsFormsApplication1
         private void GetSalaryList(ISheet mainSheet)
         {
             FileStream salaryFileStream = new FileStream(@"e:/2018年3月发薪名单.xlsx", FileMode.Open);
-            IWorkbook salaryWorkbook = new XSSFWorkbook(salaryFileStream);
-            ISheet salarySheet = salaryWorkbook.GetSheet("Sheet1");
+            XSSFWorkbook salaryWorkbook = new XSSFWorkbook(salaryFileStream);
+            XSSFSheet salarySheet = (XSSFSheet) salaryWorkbook.GetSheet("Sheet1");
             for (int i = 0; i < salarySheet.PhysicalNumberOfRows; i++)
             {
-                IRow tRow = mainSheet.CreateRow(i);
-                IRow sRow = salarySheet.GetRow(i);
+                XSSFRow tRow = (XSSFRow) mainSheet.CreateRow(i);
+                XSSFRow sRow = (XSSFRow) salarySheet.GetRow(i);
                 if (sRow != null && tRow != null)
                 {
                     for (int j = 0; j < 2; j++)
                     {
-                        ICell sCell = sRow.GetCell(j);
+                        XSSFCell sCell = (XSSFCell) sRow.GetCell(j);
                         if (sCell == null)
                         {
                             break;
                         }
                         string cellValue = sCell.ToString();
-                        ICell tCell = tRow.CreateCell(j);
+                        XSSFCell tCell = (XSSFCell) tRow.CreateCell(j);
                         //CopyCellStyle(mainWorkbook, salaryWorkbook, tCell, sCell);
 
-                        ICellStyle style = sCell.CellStyle;
+                        XSSFCellStyle style = (XSSFCellStyle) sCell.CellStyle;
                         XSSFCellStyle style1 = (XSSFCellStyle) mainWorkbook.CreateCellStyle();
+                        XSSFColor color = null;
                         if (style.FillForegroundColorColor != null)
                         {
                             byte[] pa = style.FillForegroundColorColor.RGB;
-                            XSSFColor color = new XSSFColor(pa);
-                            style1.SetFillForegroundColor(color);
-                            Console.WriteLine("enter!");
+                            string key = pa[0] + "," + pa[1] + "," + pa[2];
+                            if (dictionary.ContainsKey(key))
+                            {
+                                style1.FillForegroundColor = dictionary[key];
+                            }
+                            else
+                            {
+                                Console.WriteLine("找不到该颜色!" + key);
+                                style1.FillForegroundColor = HSSFColor.Automatic.Index;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("找不到该颜色!");
+                            style1.FillForegroundColor = HSSFColor.Automatic.Index;
                         }
                         //byte[] pa1 = style.FillBackgroundColorColor.RGB;
                         //style1.FillForegroundColor = 20;//GetColor(sCell.CellStyle.FillForegroundColor);
-                        //style1.FillPattern = sCell.CellStyle.FillPattern;
+                        style1.FillPattern = sCell.CellStyle.FillPattern;
                         //style1.FillBackgroundColor = 20;//GetColor(sCell.CellStyle.FillForegroundColor);
                         tCell.CellStyle = style1;
                         tCell.SetCellValue(cellValue);
