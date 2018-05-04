@@ -61,8 +61,63 @@ namespace WindowsFormsApplication1
             workbook.Write(sw);
             sw.Close();
         }
+        void Start()
+        {
+            //FileStream adcFileStream = new FileStream(@"e:/上海嵩恒网络科技股份有限公司_考勤报表_20180401-20180412.xlsx", FileMode.Open);
+
+            //todo:检测第一天和最后一天
+            FileStream adcFileStream = new FileStream(@"e:/11111.xlsx", FileMode.Open);
+            XSSFWorkbook workbook = new XSSFWorkbook(adcFileStream);
+            XSSFSheet atdSheet = (XSSFSheet)workbook.GetSheet("打卡时间");
+            int firstColme = 4;
+            int lastColume = 12;
+            for (int i = 0; i < atdSheet.PhysicalNumberOfRows; i++)
+            {
+                IRow row = atdSheet.GetRow(i);
+                if (row != null)
+                {
+                    for (int j = firstColme; j < lastColume; j++)
+                    {
+                        ICell sCell = row.GetCell(j);
+                       
+                        if (sCell != null)
+                        {
+                            try
+                            {
+                                string value = sCell.StringCellValue;
+                                string[] records = System.Text.RegularExpressions.Regex.Split(value, @"\s{2,}");
+                                if (records.Length > 3)
+                                {
+                                    string result = string.Format("{0}  \n{1}", records[0], records[records.Length - 2]);
+                                    sCell.SetCellValue(result);
+                                    //ICellStyle styeCellStyle = workbook.CreateCellStyle();
+                                    //styeCellStyle.FillForegroundColor = 57;
+                                    //styeCellStyle.FillPattern = FillPattern.SolidForeground;
+                                    //sCell.CellStyle = styeCellStyle;
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine("Exception: " + e.Message);
+                            }
+                           
+                        }
+                    }
+                }
+            }
+           // workbook.Write(adcFileStream);
+
+            FileStream sw = File.Create(@"e:/test.xlsx");
+            workbook.Write(sw);
+            sw.Close();
+            adcFileStream.Close();
+            workbook.Close();
+        }
         public WorkBookManager()
         {
+
+            Start();
+            return;
 
             dictionary = new Dictionary<string, short>
             {
